@@ -25,7 +25,7 @@ we can use
     year_roulette = Roulette()
     year_roulette.select_and_center(datetime.now().year)
     
-`CyclicRoulette` inherits from `Roulette`, so any settings
+`CyclicRoulette` inherits from `Roulette`, so any setting
 pertaining to `Roulette` also applies to `CyclicRoulette`.
 
 If the values need to be formatted, pass the desired format spec string to
@@ -79,6 +79,13 @@ To integrate the roulette animations with other UI elements, it may be necessary
 to specially handle the `Roulette.center_on` animation. The event
 `Roulette.on_center` can be listened for. It signals the completion
 of the ``center_on`` animation. 
+
+NICER GRAPHICS!
+---------------
+
+I didn't focus much on the graphics, or to closely simulate the iOS or android
+experience. You are encourage to contribute to improve the default appearance
+of the roulette!
 
 Extending
 ---------

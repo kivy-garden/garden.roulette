@@ -26,7 +26,7 @@ we can use::
     year_roulette = Roulette()
     year_roulette.select_and_center(datetime.now().year)
     
-:class:`CyclicRoulette` inherits from :class:`Roulette`, so any settings
+:class:`CyclicRoulette` inherits from :class:`Roulette`, so any setting
 pertaining to :class:`Roulette` also applies to :class:`CyclicRoulette`.
 
 If the values need to be formatted, pass the desired format spec string to
