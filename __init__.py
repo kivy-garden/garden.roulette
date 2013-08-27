@@ -50,14 +50,14 @@ primitive datetime selector::
         from kivy.uix.boxlayout import BoxLayout
         b = BoxLayout()
         b.add_widget(Roulette(density=2.8, selected_value=2013))
-        b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
         b.add_widget(CyclicRoulette(cycle=12, density=2.8, zero_indexed=False))
+        b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
         b.add_widget(TimeFormatCyclicRoulette(cycle=24))
         b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
         b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
         
         runTouchApp(b)
-
+ 
 :attr:`Roulette.selected_value` contains the current selection. When the 
 roulette is still, this is the number at the center. If the roulette is
 moving, this is the last number centered on before the roulette started 
@@ -448,8 +448,8 @@ if __name__ == '__main__':
     from kivy.uix.boxlayout import BoxLayout
     b = BoxLayout()
     b.add_widget(Roulette(density=2.8, selected_value=2013))
-    b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
     b.add_widget(CyclicRoulette(cycle=12, density=2.8, zero_indexed=False))
+    b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
     b.add_widget(TimeFormatCyclicRoulette(cycle=24))
     b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
     b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
