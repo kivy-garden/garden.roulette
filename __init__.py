@@ -81,6 +81,13 @@ to specially handle the :meth:`Roulette.center_on` animation. The event
 :meth:`Roulette.on_center` can be listened for. It signals the completion
 of the ``center_on`` animation. 
 
+NICER GRAPHICS!
+---------------
+
+I didn't focus much on the graphics, or to closely simulate the iOS or android
+experience. You are encourage to contribute to improve the default appearance
+of the roulette!
+
 Extending
 ---------
 
