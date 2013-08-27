@@ -2,6 +2,12 @@
 Roulette
 ========
 
+:class:`Roulette` provides a rolling way of selecting values like in iOS
+and android date pickers. 
+
+It's simple to use. To give a choice from 0, 1, ..., 9, use::
+
+    CyclicRoulette(cycle=10, zero_indexed=True)
 
 
 Dependencies
@@ -104,6 +110,7 @@ class CyclicSlot(Slot):
         self.zero_indexed = not val
     first_value = AliasProperty(get_first_value, set_first_value, cache=True,
                                 bind=['zero_indexed'])
+    '''provides a default value.'''
 
     def slot_value(self, index):
         cycle = self.cycle
@@ -328,10 +335,12 @@ class Roulette(Tickline):
 class CyclicRoulette(Roulette):
     '''roulette for displaying cyclic values.'''
     tick_cls = ObjectProperty(CyclicSlot)
+    
     cycle = NumericProperty(10)
+    '''the cycle of values displayed.'''
+    
     zero_indexed = BooleanProperty(False)
-    format_str = StringProperty('{}')
-    int_valued = BooleanProperty(True)
+    '''whether the values displayed will start from 0 or 1.'''
     
     def __init__(self, **kw):
         super(CyclicRoulette, self).__init__(**kw)
@@ -343,8 +352,6 @@ class CyclicRoulette(Roulette):
         if tick:
             tick.cycle = self.cycle
             tick.zero_indexed = self.zero_indexed
-            tick.format_str = self.format_str
-            tick.int_valued = self.int_valued
     def on_cycle(self, *args):
         if self.tick:
             self.tick.cycle = self.cycle
