@@ -119,9 +119,12 @@ class Slot(Tick):
 class CyclicSlot(Slot):
     cycle = NumericProperty(10)
     zero_indexed = BooleanProperty(False)
-    @property
-    def first_value(self):
+    def get_first_value(self):
         return 0 if self.zero_indexed else 1
+    def set_first_value(self, val):
+        self.zero_indexed = not val
+    first_value = AliasProperty(get_first_value, set_first_value, cache=True,
+                                bind=['zero_indexed'])
     def slot_value(self, index):
         cycle = self.cycle
         val = index % cycle + 1 - self.zero_indexed
@@ -144,63 +147,6 @@ class CyclicSlot(Slot):
         index = n * cycle + base_index
         return index 
         
-class TimeSlot(TimeTick, Slot):
-    format_str_dict = {'second': '%S',
-                        'minute': '%M',
-                        'hour': '%H',
-                        'day': '%d'}
-    _format_str = StringProperty(None, allownone=True)
-    tick_size = ListProperty([0, 0])
-    def get_format_str(self):
-        return self.format_str_dict[self.mode]
-    def set_format_str(self, val):
-        self._format_str = val
-    format_str = AliasProperty(get_format_str, set_format_str, 
-                               bind=['mode', '_format_str'])
-    '''The format string for the time displayed. By default it is given
-    by the corresponding entry in :attr:`format_str_dict`. But it can be
-    customized by setting it to the desired string. 
-    
-    To get the default format back, call :meth:`reset_format_str`.
-    '''
-    
-    def reset_format_str(self, *args):
-        self._format_str = None
-    def slot_value(self, index, *args, **kw):
-        return self.datetime_of(index)
-    def get_label_texture(self, index, succinct=True, **kw):
-        if isinstance(index, Number):
-            t = self.datetime_of(index)
-        else:
-            t = index
-        label = CoreLabel(text=t.strftime(self.format_str),
-                         font_size=self.font_size)
-        label.refresh()
-        return label.texture
-
-mode_options = TimeTick.mode_options
-
-class SecondSlot(TimeSlot):
-    mode = OptionProperty('second', options=mode_options)
-
-class MinuteSlot(TimeSlot):
-    mode = OptionProperty('minute', options=mode_options)
-
-class HourSlot(TimeSlot):
-    mode = OptionProperty('hour', options=mode_options)
-
-class DaySlot(TimeSlot):
-    mode = OptionProperty('day', options=mode_options)
-
-#===============================================================================
-# Labellers
-#===============================================================================
-
-class DatetimeRouletteLabeller(TimeLabeller):
-    date_dist_from_edge = NumericProperty('0')
-    time_dist_from_edge = NumericProperty('0')
-    time_font_size = NumericProperty('18sp')
-    date_font_size = NumericProperty('18sp')
 
 #===============================================================================
 # Roulettes
@@ -222,6 +168,7 @@ Builder.load_string('''
             size: self.width, self.height / 2
     size_hint: None, 1
 ''')
+
 class Roulette(Tickline):
     __events__ = ('on_centered',)
     tick_cls = ObjectProperty(Slot)
@@ -399,24 +346,7 @@ class CyclicRoulette(Roulette):
             return val
         return tick.index_of(val, tick.localize(self.index_mid))        
     
-class TimeRoulette(Roulette, Timeline):
-    '''The base class for implementation of time roulettes where the internals
-    keep track of the absolute time, instead of just the value displayed.'''
-    tick_cls = ObjectProperty(SecondSlot)
-    def __init__(self, **kw):
-        super(TimeRoulette, self).__init__(**kw)
-        self.tick = self.tick_cls()
-        self._trigger_calibrate()
-        self.selected_value = self.truncate_datetime(local_now())
-        self.center_on(self.selected_value)
-    def index_of(self, *args):
-        return Timeline.index_of(self, *args)
-    def round_(self, val, *args):
-        return round_time(val, self.tick.mode)
-    def truncate_datetime(self, dt):
-        '''method for truncating ``dt`` to the precision corresponding to
-        this :class:`TimeRoulette`.'''
-        raise NotImplementedError
+
     
 Builder.load_string('''
 <TimeFormatCyclicRoulette>:
@@ -426,25 +356,7 @@ Builder.load_string('''
 class TimeFormatCyclicRoulette(CyclicRoulette):
     pass
 
-class SecondRoulette(TimeRoulette):
-    tick_cls = ObjectProperty(SecondSlot)
-    def truncate_datetime(self, dt):
-        return dt.replace(microsecond=0)    
-        
-class MinuteRoulette(TimeRoulette):
-    tick_cls = ObjectProperty(MinuteSlot)
-    def truncate_datetime(self, dt):
-        return dt.replace(second=0, microsecond=0)
-    
-class HourRoulette(TimeRoulette):
-    tick_cls = ObjectProperty(HourSlot)
-    def truncate_datetime(self, dt):
-        return dt.replace(minute=0, second=0, microsecond=0)
-    
-class DayRoulette(TimeRoulette):
-    tick_cls = ObjectProperty(DaySlot)
-    def truncate_datetime(self, dt):
-        return dt.replace(hour=0, minute=0, second=0, microsecond=0)
+
 if __name__ == '__main__':
     b = BoxLayout(
 #                   size=[500, 300], size_hint=[None, None],
