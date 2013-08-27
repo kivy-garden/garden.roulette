@@ -10,44 +10,19 @@ Dependencies
 1. the garden package ``kivy.garden.tickline``. Use ``garden install tickline``
     to install it like any other garden package.
     
-3. for getting the local timezone, Windows or Unix-based systems need to get
-   the ``tzlocal`` python module. ``easy_install`` or ``pip install`` should
-   suffice here. 
-   
 '''
 from kivy.garden.roulettescroll import RouletteScrollEffect
 from kivy.garden.tickline import Tick, Tickline, TickLabeller
 from kivy.garden.timeline import Timeline, TimeTick, TimeLabeller, \
     round_time
 from kivy.animation import Animation
-from kivy.base import runTouchApp
 from kivy.clock import Clock
-from kivy.config import Config
 from kivy.core.text import Label as CoreLabel
 from kivy.graphics.vertex_instructions import Rectangle
 from kivy.lang import Builder
 from kivy.metrics import sp, dp
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, BooleanProperty, StringProperty, OptionProperty
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from datetime import datetime
-from numbers import Number
-from pytz import UTC
-try:
-    from tzlocal import get_localzone
-except ImportError:
-    from jnius import autoclass
-    from pytz import timezone
-    TimeZone = autoclass('java.util.TimeZone')
-    
-    def get_localzone():
-        return timezone(TimeZone.getDefault().getID())
-    
-def local_now():
-    return get_localzone().localize(datetime.now())    
-
 
 
 class SlotLabeller(TickLabeller):
@@ -358,6 +333,8 @@ class TimeFormatCyclicRoulette(CyclicRoulette):
 
 
 if __name__ == '__main__':
+    from kivy.base import runTouchApp
+    from kivy.uix.boxlayout import BoxLayout
     b = BoxLayout(
 #                   size=[500, 300], size_hint=[None, None],
 #                   pos_hint={'x': .1, 'y': .1}
