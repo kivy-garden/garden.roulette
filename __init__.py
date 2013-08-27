@@ -7,14 +7,15 @@ Roulette
 Dependencies
 ------------
 
-1. the garden package ``kivy.garden.tickline``. Use ``garden install tickline``
+*. the garden package ``kivy.garden.tickline``. Use ``garden install tickline``
     to install it like any other garden package.
+
+*. the garden package ``kivy.garden.roulettescroll``.
+
     
 '''
 from kivy.garden.roulettescroll import RouletteScrollEffect
 from kivy.garden.tickline import Tick, Tickline, TickLabeller
-from kivy.garden.timeline import Timeline, TimeTick, TimeLabeller, \
-    round_time
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.text import Label as CoreLabel
@@ -56,6 +57,7 @@ class SlotLabeller(TickLabeller):
             self.instructions.setdefault(tick_index, 
                 Rectangle(texture=texture, size=texture.size,
                           group=self.group_id)).pos = pos
+
     def make_labels(self):  
         canvas = self.tickline.canvas
         for index in self.to_push:
@@ -68,6 +70,7 @@ class SlotLabeller(TickLabeller):
 #===============================================================================
 # Slots
 #===============================================================================
+
 class Slot(Tick):
     tick_size = ListProperty([0, 0])
     font_size = NumericProperty('20sp')
@@ -94,12 +97,14 @@ class Slot(Tick):
 class CyclicSlot(Slot):
     cycle = NumericProperty(10)
     zero_indexed = BooleanProperty(False)
+    
     def get_first_value(self):
         return 0 if self.zero_indexed else 1
     def set_first_value(self, val):
         self.zero_indexed = not val
     first_value = AliasProperty(get_first_value, set_first_value, cache=True,
                                 bind=['zero_indexed'])
+
     def slot_value(self, index):
         cycle = self.cycle
         val = index % cycle + 1 - self.zero_indexed
@@ -107,6 +112,7 @@ class CyclicSlot(Slot):
         if val >= cycle + 1 - self.zero_indexed:
             val -= cycle
         return val
+
     def index_of(self, val, current_index, *args, **kw):
         '''returns the closest index to ``current_index`` that would correspond
         to ``val``. All indices should be localized.'''
@@ -146,24 +152,63 @@ Builder.load_string('''
 
 class Roulette(Tickline):
     __events__ = ('on_centered',)
-    tick_cls = ObjectProperty(Slot)
-    '''The class of the tick in this roulette. Should be overriden as needed
-    by child class.'''
+    
+    #===========================================================================
+    # overrides
+    #===========================================================================
+    
     labeller_cls = ObjectProperty(SlotLabeller)
     zoomable = BooleanProperty(False)
     draw_line = BooleanProperty(False)
     background_color = ListProperty([0.06, .07, .22])
     font_size = NumericProperty('20sp')
     width = NumericProperty('60dp')
+    
+    # doesn't make sense to have more than 1 tick
+    tick = ObjectProperty(None)
+    
+    def get_ticks(self):
+        if self.tick:
+            return [self.tick]
+        else:
+            return []
+    def set_ticks(self, val):
+        self.tick = val[0]
+    ticks = AliasProperty(get_ticks, set_ticks, bind=['tick'])
+    
+    #===========================================================================
+    # public attributes
+    #===========================================================================
+    
     selected_value = ObjectProperty(None)
+    '''the currently selected value.'''
+    
     format_str = StringProperty('{}')
+    '''formatting spec string for the values displayed.'''
+    
+    tick_cls = ObjectProperty(Slot)
+    '''The class of the tick in this roulette. Defaults to 
+    :class:`Slot`. Should be overriden as needed by child class.'''
+    
     int_valued = BooleanProperty(True)
+    '''indicates whether the values should be displayed as integers.'''
+    
     scroll_effect_cls = ObjectProperty(RouletteScrollEffect)
-    drag_threshold = NumericProperty(0)
+    
+    # has to be negative so that ``ScrollEffect.trigger_velocity_update``
+    # is always called
+    drag_threshold = NumericProperty(-1)
+    '''this is passed to the ``drag_threshold`` of :attr:`scroll_effect_cls`.
+    
+    It is by default set to -1 to turn off the drag threshold.
+    '''
+
     center_duration = NumericProperty(.3)
     '''duration for the animation of :meth:`center_on`.''' 
+    
     density = NumericProperty(4.2)
     '''determines how many slots are shown at a time.'''
+    
     def get_rolling_value(self):
         return self.tick.slot_value(self.tick.localize(self.index_mid))
     def set_rolling_value(self, val):
@@ -178,16 +223,7 @@ class Roulette(Tickline):
     .. note::
         This property is not stable under resizing, since often that will
         change the slot in the middle.'''
-    def get_ticks(self):
-        if self.tick:
-            return [self.tick]
-        else:
-            return []
-    def set_ticks(self, val):
-        self.tick = val[0]
-    ticks = AliasProperty(get_ticks, set_ticks, bind=['tick'])
-    # needs a non-None value to so that kv bindings work
-    tick = ObjectProperty(None)
+    
     
     def __init__(self, **kw):
         self.tick = Slot()
@@ -197,6 +233,7 @@ class Roulette(Tickline):
                 Clock.create_trigger(self.set_selected_value)
         self.tick = self.tick_cls()
         self._trigger_calibrate()
+
     def on_tick_cls(self, *args):
         self.tick = self.tick_cls()
     def on_tick(self, *args):
@@ -205,6 +242,15 @@ class Roulette(Tickline):
             tick.font_size = self.font_size
             tick.int_valued = self.int_valued
             tick.format_str = self.format_str
+    def on_size(self, *args):
+        self.scale = self.line_length / self.density
+        self.recenter()
+    def on_int_valued(self, *args):
+        if self.tick:
+            self.tick.int_valued = self.int_valued
+    def on_format_str(self, *args):
+        if self.tick:
+            self.tick.format_str = self.format_str
      
     def get_anchor(self):
         '''returns a legal stopping value for the :class:`RouletteScrollEffect`.
@@ -237,9 +283,6 @@ class Roulette(Tickline):
         if self.selected_value is not None:
             self.center_on(self.selected_value)
         self._trigger_calibrate()
-    def on_size(self, *args):
-        self.scale = self.line_length / self.density
-        self.recenter()
     def index_of(self, val):
         '''returns the index that should be equivalent to a selection value
         ``val``. Should be overriden if necessary.'''
@@ -283,13 +326,7 @@ class Roulette(Tickline):
         return True
     def is_rolling(self):
         return self.scroll_effect.velocity != 0
-    def on_int_valued(self, *args):
-        if self.tick:
-            self.tick.int_valued = self.int_valued
-    def on_format_str(self, *args):
-        if self.tick:
-            self.tick.format_str = self.format_str
-            
+           
 class CyclicRoulette(Roulette):
     tick_cls = ObjectProperty(CyclicSlot)
     cycle = NumericProperty(10)
@@ -322,15 +359,10 @@ class CyclicRoulette(Roulette):
         return tick.index_of(val, tick.localize(self.index_mid))        
     
 
-    
-Builder.load_string('''
-<TimeFormatCyclicRoulette>:
-    zero_indexed: True
-    format_str: '{:02d}'
-''')
 class TimeFormatCyclicRoulette(CyclicRoulette):
-    pass
-
+    '''formatted roulette for displaying time.'''
+    zero_indexed = BooleanProperty(True)
+    format_str = StringProperty('{:02d}')
 
 if __name__ == '__main__':
     from kivy.base import runTouchApp
