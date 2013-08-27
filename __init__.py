@@ -290,7 +290,6 @@ class Roulette(Tickline):
     def center_on(self, val, animate=True):
         Animation.stop_all(self)
         center_index = self.index_of(val)
-        print hasattr(Tickline, 'max_pos')
         half_length = self.line_length / 2. / self.scale 
         index_0 = center_index - half_length
         index_1 = center_index + half_length
@@ -310,7 +309,6 @@ class Roulette(Tickline):
         pass
     
     def _centered(self, *args):
-        print 'animation complete: calling "_centered"'
         self._trigger_calibrate()
         self.dispatch('on_centered')
     def center(self, animate=True):
@@ -328,6 +326,7 @@ class Roulette(Tickline):
         return self.scroll_effect.velocity != 0
            
 class CyclicRoulette(Roulette):
+    '''roulette for displaying cyclic values.'''
     tick_cls = ObjectProperty(CyclicSlot)
     cycle = NumericProperty(10)
     zero_indexed = BooleanProperty(False)
