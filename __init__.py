@@ -313,10 +313,10 @@ class Roulette(Tickline):
     
     def __init__(self, **kw):
         self.tick = Slot()
-        super(Roulette, self).__init__(**kw)
-        self.scale = dp(10)
         self._trigger_set_selection = \
                 Clock.create_trigger(self.set_selected_value)
+        super(Roulette, self).__init__(**kw)
+        self.scale = dp(10)
         self.tick = self.tick_cls()
         self._trigger_calibrate()
 
