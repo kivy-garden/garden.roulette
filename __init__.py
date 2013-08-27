@@ -5,11 +5,6 @@ Roulette
 :class:`Roulette` provides a rolling way of selecting values like in iOS
 and android date pickers. 
 
-It's simple to use. To give a choice from 0, 1, ..., 9, use::
-
-    CyclicRoulette(cycle=10, zero_indexed=True)
-
-
 Dependencies
 ------------
 
@@ -18,6 +13,83 @@ Dependencies
 
 *. the garden package ``kivy.garden.roulettescroll``.
 
+Usage
+-----
+
+It's simple to use. To give a choice from 0, 1, ..., 9, use::
+
+    CyclicRoulette(cycle=10, zero_indexed=True)
+
+Or if we need to select a year, with the default value being the current one,
+we can use::
+
+    year_roulette = Roulette()
+    year_roulette.select_and_center(datetime.now().year)
+    
+:class:`CyclicRoulette` inherits from :class:`Roulette`, so any settings
+pertaining to :class:`Roulette` also applies to :class:`CyclicRoulette`.
+
+If the values need to be formatted, pass the desired format spec string to
+:attr:`Roulette.format_spec`, like so::
+
+    CyclicRoulette(cycle=60, zero_indexed=True, format_spec='{:02d}'}
+    
+This configuration is used much for time display, so there's a convenience
+class :class:`TimeFormatCyclicRoulette` for it, with ``zero_index=True``
+and ``format_spc='{:02d}'``. 
+
+:attr:`Roulette.density` controls how many values are displayed. To show
+3 values at a time, pass ``density=3``. Fractional values will partially
+hide values on the edges. 
+
+Here's a complete working example with all of the concepts above, a
+primitive datetime selector::
+
+    if __name__ == '__main__':
+        from kivy.base import runTouchApp
+        from kivy.uix.boxlayout import BoxLayout
+        b = BoxLayout()
+        b.add_widget(Roulette(density=2.8, selected_value=2013))
+        b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
+        b.add_widget(CyclicRoulette(cycle=12, density=2.8, zero_indexed=False))
+        b.add_widget(TimeFormatCyclicRoulette(cycle=24))
+        b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+        b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+        
+        runTouchApp(b)
+
+:attr:`Roulette.selected_value` contains the current selection. When the 
+roulette is still, this is the number at the center. If the roulette is
+moving, this is the last number centered on before the roulette started 
+moving.
+
+If you need more real time information on the value selection, you may
+confer :attr:`Roulette.rolling_value`. This is the value the would be selected
+if the roulette were to stop right now. So if the roulette is not moving,
+then :attr:`Roulette.rolling_value` is equal to :attr:`Roulette.selected_value`.
+Otherwise, they are expected to be different. Note, however, that this
+value is not stable to widget resizing, as is ``selected_value``. 
+
+To center the roulette, you can call :meth:`Roulette.center_on`. This method
+performs an animation to center on the desired value. It does NOT change the
+:attr:`~Roulette.selected_value`. The method mentioned above, 
+:attr:`~Roulette.select_and_center`, on the other hand, does change 
+the selected value. 
+
+To integrate the roulette animations with other UI elements, it may be necessary
+to specially handle the :meth:`Roulette.center_on` animation. The event
+:meth:`Roulette.on_center` can be listened for. It signals the completion
+of the ``center_on`` animation. 
+
+Extending
+---------
+
+:class:`Roulette` inherits from :class:`kivy.garden.tickline.Tickline`, and
+as such, uses its system of tickline, tick, and labeller. Hence extensive
+customizations may be done by extending :class:`Slot` and :class:`CyclicSlot`,
+the default tick classes of respectively :class:`Roulette` and 
+:class:`CyclicRoulette`, and :class:`SlotLabeller`, the default labeller class 
+of :class:`Roulette`.
     
 '''
 from kivy.garden.roulettescroll import RouletteScrollEffect
@@ -352,6 +424,7 @@ class CyclicRoulette(Roulette):
         if tick:
             tick.cycle = self.cycle
             tick.zero_indexed = self.zero_indexed
+        super(CyclicRoulette, self).on_tick(*args)
     def on_cycle(self, *args):
         if self.tick:
             self.tick.cycle = self.cycle
@@ -373,21 +446,13 @@ class TimeFormatCyclicRoulette(CyclicRoulette):
 if __name__ == '__main__':
     from kivy.base import runTouchApp
     from kivy.uix.boxlayout import BoxLayout
-    b = BoxLayout(
-#                   size=[500, 300], size_hint=[None, None],
-#                   pos_hint={'x': .1, 'y': .1}
-                  )
-    b.add_widget(CyclicRoulette(cycle=24, zero_indexed=True, format_str='{:02d}'))
-    b.add_widget(CyclicRoulette(cycle=60, zero_indexed=True, format_str='{:02d}'))
-    b.add_widget(CyclicRoulette(cycle=60, zero_indexed=True, format_str='{:02d}'))
-#     year = Roulette()
-#     year.select_and_center(2013)
-#     b.add_widget(year)
+    b = BoxLayout()
+    b.add_widget(Roulette(density=2.8, selected_value=2013))
+    b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
+    b.add_widget(CyclicRoulette(cycle=12, density=2.8, zero_indexed=False))
     b.add_widget(TimeFormatCyclicRoulette(cycle=24))
-#     b.add_widget(HourRoulette())
-#     b.add_widget(MinuteRoulette())
-#     b.add_widget(SecondRoulette())
-# #     for i in xrange(5):
-#         b.add_widget(SecondRoulette())
+    b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+    b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+    
     runTouchApp(b)
     
