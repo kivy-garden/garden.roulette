@@ -90,6 +90,9 @@ I didn't focus much on the graphics, or to closely simulate the iOS or android
 experience. You are encourage to contribute to improve the default appearance
 of the roulette!
 
+In version 0.1.1 and later, a background image can be added by giving the path
+to `Roulette.background_image`.
+
 Extending
 ---------
 

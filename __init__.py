@@ -91,6 +91,11 @@ I didn't focus much on the graphics, or to closely simulate the iOS or android
 experience. You are encourage to contribute to improve the default appearance
 of the roulette!
 
+    .. versionchanged:: 0.1.1
+    
+           a background image can be added by giving the path
+            to :attr:`Roulette.background_image`.
+
 Extending
 ---------
 
@@ -102,16 +107,21 @@ the default tick classes of respectively :class:`Roulette` and
 of :class:`Roulette`.
     
 '''
-from kivy.garden.roulettescroll import RouletteScrollEffect
-from kivy.garden.tickline import Tick, Tickline, TickLabeller
+
+__version__ = '0.1.1'
+
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.text import Label as CoreLabel
+from kivy.garden.roulettescroll import RouletteScrollEffect
+from kivy.garden.tickline import Tick, Tickline, TickLabeller
 from kivy.graphics.vertex_instructions import Rectangle
 from kivy.lang import Builder
 from kivy.metrics import sp, dp
 from kivy.properties import ListProperty, ObjectProperty, AliasProperty, \
     NumericProperty, BooleanProperty, StringProperty, OptionProperty
+from kivy.graphics.vertex_instructions import BorderImage
+from os.path import join, dirname
 
 
 class SlotLabeller(TickLabeller):
@@ -222,23 +232,6 @@ class CyclicSlot(Slot):
 # Roulettes
 #===============================================================================
 
-Builder.load_string('''
-<Roulette>:
-    canvas.after:
-        Color:
-            rgb: 1, 1, 1, 0
-        Line:
-            points: self.x, self.y, self.x, self.top
-        Line:
-            points: self.right, self.y, self.right, self.top
-        Color:
-            rgba: 1, 1, 1, .3
-        Rectangle:
-            pos: self.pos
-            size: self.width, self.height / 2
-    size_hint: None, 1
-''')
-
 class Roulette(Tickline):
     __events__ = ('on_centered',)
     
@@ -246,10 +239,32 @@ class Roulette(Tickline):
     # overrides
     #===========================================================================
     
+    background_image = StringProperty(
+                        join(dirname(__file__), 'roulettebackground.png'),
+                        allownone=True)
+    '''background image, overriding the default of None in :class:`Tickline`.
+    
+    .. versionadded:: 0.1.1
+    '''
+
+    background_color = ListProperty([1, 1, 1, 1])
+    '''background color, defaulting to [1, 1, 1, 1], overriding default
+    of [0, 0, 0] in :class:`Tickline`.
+    
+    .. versionadded:: 0.1.1
+    '''
+    
+    cover_background = BooleanProperty(False)
+    '''determines whether to draw a Rectangle covering the background.
+    Overriding :class:`Tickline` default to give False.
+    
+    .. versionadded:: 0.1.1
+    '''
+    
+    size_hint_x = NumericProperty(None, allownone=True)
     labeller_cls = ObjectProperty(SlotLabeller)
     zoomable = BooleanProperty(False)
     draw_line = BooleanProperty(False)
-    background_color = ListProperty([0.06, .07, .22])
     font_size = NumericProperty('20sp')
     width = NumericProperty('60dp')
     
