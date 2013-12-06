@@ -35,7 +35,7 @@ If the values need to be formatted, pass the desired format spec string to
     
 This configuration is used much for time display, so there's a convenience
 class `TimeFormatCyclicRoulette` for it, with ``zero_index=True``
-and ``format_spc='{:02d}'``. 
+and ``format_spec='{:02d}'``. 
 
 `Roulette.density` controls how many values are displayed. To show
 3 values at a time, pass ``density=3``. Fractional values will partially
@@ -72,6 +72,36 @@ then `Roulette.rolling_value` is equal to `Roulette.selected_value`.
 Otherwise, they are expected to be different. Note, however, that this
 value is not stable to widget resizing, as is ``selected_value``. 
 
+For example, we can check the selected and rolling values of the above snippet
+with::
+
+
+	if __name__ == '__main__':
+	    from kivy.base import runTouchApp
+	    from kivy.uix.boxlayout import BoxLayout
+	    from kivy.uix.label import Label
+	    b = BoxLayout()
+	    b.add_widget(Roulette(density=2.8, selected_value=2013))
+	    b.add_widget(CyclicRoulette(cycle=12, density=2.8, zero_indexed=False))
+	    b.add_widget(CyclicRoulette(cycle=30, density=2.8, zero_indexed=False))
+	    b.add_widget(TimeFormatCyclicRoulette(cycle=24))
+	    b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+	    b.add_widget(TimeFormatCyclicRoulette(cycle=60)) 
+	    selected_value = Label()
+	    rolling_value = Label()
+	    for c in b.children:
+	        c.bind(selected_value=lambda _, val:
+	               selected_value.setter('text')(_,
+	                'selected_value:\n' + str(val)),
+	               rolling_value=lambda _, val:
+	               rolling_value.setter('text')(_,
+	                'rolling_value:\n' + str(val)))
+	    
+	    b.add_widget(selected_value)
+	    b.add_widget(rolling_value)
+	    
+	    runTouchApp(b)
+    
 To center the roulette, you can call `Roulette.center_on`. This method
 performs an animation to center on the desired value. It does NOT change the
 `Roulette.selected_value`. The method mentioned above, 
